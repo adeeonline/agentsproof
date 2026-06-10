@@ -1,10 +1,7 @@
 import { nanoid } from 'nanoid';
-import { StepPayload } from './types';
+import { StepPayload, RunOptions } from './types';
 
-interface RunInternalOptions {
-  label?: string;
-  input: unknown;
-  projectSlug: string;
+interface RunInternalOptions extends RunOptions {
   apiKey: string;
   baseUrl: string;
 }
@@ -36,9 +33,12 @@ export class AgentRun {
         input: this.opts.input,
         projectSlug: this.opts.projectSlug,
         clientRunId: this.runId,
+        goal: this.opts.goal,
+        expectedOutput: this.opts.expectedOutput,
+        metadata: this.opts.metadata ?? {},
       }),
     });
-    if (!res.ok) throw new Error(`AgentProof: failed to init run — ${res.status}`);
+    if (!res.ok) throw new Error(`AgentsProof: failed to init run — ${res.status}`);
     const data = await res.json();
     this.remoteRunId = data.runId;
   }
@@ -93,8 +93,17 @@ export class AgentRun {
       },
       body: JSON.stringify({ output }),
     });
-    if (!res.ok) throw new Error(`AgentProof: failed to complete run — ${res.status}`);
+    if (!res.ok) throw new Error(`AgentsProof: failed to complete run — ${res.status}`);
     const data = await res.json();
     return { publicUrl: data.publicUrl };
+  }
+
+  async getRemoteId(): Promise<string | null> {
+    await this.initPromise;
+    return this.remoteRunId;
+  }
+
+  get elapsedMs() {
+    return Date.now() - this.startedAt;
   }
 }
