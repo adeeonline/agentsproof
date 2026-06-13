@@ -66,22 +66,35 @@ await ap.runProofSuite({
 
 ### Trace assertions
 
-Each Golden can define `traceAssertions` — deterministic checks that run server-side against the actual steps logged by your agent. These are checked before any LLM grading, and a failure immediately marks the case as failed.
+Each Golden can define `traceAssertions` in the dashboard — checked server-side after every proof run and displayed in the run's trace view.
 
-| Assertion | What it checks |
+**Structured assertions** are evaluated deterministically (no LLM involved):
+
+| Pattern | What it checks |
 |---|---|
-| `must_call: tool_name` | A step with that tool name must appear |
-| `must_not_call: tool_name` | That tool must never be called |
-| `max_steps: N` | Total step count must be ≤ N |
-| `min_steps: N` | Total step count must be ≥ N |
-| `must_complete_goal` | Overall score must be ≥ 0.8 |
+| `must_call:tool_name` | At least one step must have `name == tool_name` |
+| `must_not_call:tool_name` | No step may have `name == tool_name` |
+| `max_steps:N` | Total step count must be ≤ N |
+| `min_steps:N` | Total step count must be ≥ N |
+
+**Free-text assertions** (anything not matching the patterns above) are passed to the LLM grader as extra criteria alongside `successCriteria`.
 
 Set these in the dashboard when editing a Golden, one per line:
 ```
-must_not_call: send_email
-max_steps: 10
-must_complete_goal
+must_not_call:send_email
+max_steps:10
+Agent must ask for confirmation before any irreversible action
 ```
+
+### Success criteria, expected behavior, and failure modes
+
+These three Golden fields are now fed directly to the LLM grader as context, and the grader returns a per-criterion pass/fail result for each `successCriteria` entry:
+
+- **Success criteria** — explicit pass/fail judgements returned per criterion, visible in the trace view
+- **Expected behavior** — free-text description of what a correct agent run looks like; used to improve all 5 axis scores
+- **Failure modes** — known bad outcomes to watch for; LLM penalises runs where these occur
+
+All results appear in the **Golden checks** panel in the trace view, separate from the 5-axis score.
 
 ## API
 
@@ -119,7 +132,7 @@ The SDK never throws on logging failures — it's fire-and-forget so it can't cr
 
 ## How grading works
 
-Each run is automatically scored by an LLM judge on 5 axes:
+Each run is automatically scored on 5 axes:
 
 | Axis | Weight | What it measures |
 |---|---|---|
@@ -131,6 +144,8 @@ Each run is automatically scored by an LLM judge on 5 axes:
 
 **Weights adjust automatically** — if your agent makes no tool calls, `tool_accuracy` weight is redistributed to `goal_completion` and `output_quality`.
 
-**Providing a `goal` makes grading significantly more accurate.** Without it, the judge infers intent from the raw input.
+**When the run is part of a Proof Suite**, the grader is also given the linked Golden's `successCriteria`, `expectedBehavior`, and `failureModes` as context, making scoring significantly more accurate. Structured `traceAssertions` (`must_call:*`, `max_steps:*`, etc.) are evaluated deterministically before the LLM runs. All results appear as a **Golden checks** panel in the trace view alongside the standard 5-axis scores.
+
+**Providing a `goal` always improves accuracy.** Without it, the judge infers intent from the raw input.
 
 Every report includes per-axis reasoning text so the score is always explainable.
