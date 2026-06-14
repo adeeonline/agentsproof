@@ -15,6 +15,16 @@ export interface StepPayload {
   cost_usd?: number;
 }
 
+export interface TraceOptions<T = unknown> {
+  /**
+   * Extract token count and cost from the step output.
+   * Takes priority over automatic detection.
+   * If omitted, the SDK tries to sniff usage from well-known LLM response
+   * shapes (Anthropic, OpenAI-compatible). Falls back to null if neither works.
+   */
+  extract?: (output: T) => { token_count?: number; cost_usd?: number };
+}
+
 export interface RunOptions {
   label?: string;
   input: unknown;

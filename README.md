@@ -111,8 +111,26 @@ Create a client. Get your API key from the dashboard at [agentsproof.dev](https:
 | `goal` | `string` | no | What this run should accomplish. Used by the grader to score `goal_completion`. |
 | `expectedOutput` | `unknown` | no | Expected output. When provided, grader compares actual output against this for `output_quality` scoring. |
 
-### `run.trace(type, name, fn, input?)` → `Promise<T>`
+### `run.trace(type, name, fn, input?, options?)` → `Promise<T>`
 Wrap any async function and auto-log it as a step with latency and output captured.
+
+Token count and cost are captured automatically in priority order:
+
+1. **`options.extract`** — your own extractor, called with the step output. Return `{ token_count?, cost_usd? }`.
+2. **Auto-detection** — if no extractor is given, the SDK sniffs `output.usage` for Anthropic (`input_tokens + output_tokens`) and OpenAI-compatible (`total_tokens` or `prompt_tokens + completion_tokens`) shapes.
+3. **null** — if neither works, both fields are omitted from the step.
+
+```ts
+// Anthropic / OpenAI — auto-detected, no extra code needed
+const result = await run.trace('llm_call', 'claude', () =>
+  anthropic.messages.create({ model: 'claude-sonnet-4-6', /* ... */ })
+);
+
+// Any other provider — supply an extractor
+const result = await run.trace('llm_call', 'my-model', () => callMyLLM(prompt), input, {
+  extract: (out) => ({ token_count: out.usage.tokens, cost_usd: out.billed_usd }),
+});
+```
 
 ### `run.logStep(payload)`
 Manually log a step. Step types: `llm_call` | `tool_call` | `tool_result` | `memory_read` | `memory_write`.

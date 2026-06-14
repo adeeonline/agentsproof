@@ -1,6 +1,6 @@
 {
   "name": "agentsproof",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Eval and shareable replay reports for AI agents — drop in one decorator, get a public report URL.",
   "license": "MIT",
   "author": "Assad Ullah <assad@agentsproof.dev>",
