@@ -57,8 +57,13 @@ export class AgentRun {
         input: this.opts.input,
         projectSlug: this.opts.projectSlug,
         clientRunId: this.runId,
+        goldenId: this.opts.goldenId,
         goal: this.opts.goal,
         expectedOutput: this.opts.expectedOutput,
+        expectedBehavior: this.opts.expectedBehavior,
+        successCriteria: this.opts.successCriteria,
+        traceAssertions: this.opts.traceAssertions,
+        failureModes: this.opts.failureModes,
         metadata: this.opts.metadata ?? {},
       }),
     });

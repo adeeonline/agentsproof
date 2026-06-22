@@ -27,13 +27,28 @@ export interface TraceOptions<T = unknown> {
 
 export interface RunOptions {
   label?: string;
-  input: unknown;
+  input?: unknown;
   projectSlug: string;
+  /**
+   * ID of an existing Golden to run against.
+   * When provided, the Golden's input, goal, expectedOutput, successCriteria,
+   * traceAssertions, failureModes, and expectedBehavior are all used automatically.
+   * Any field you also provide explicitly here overrides the Golden's value.
+   */
+  goldenId?: string;
   /** Plain-language description of what this run should accomplish. Used by the grader to score goal_completion accurately. */
   goal?: string;
   /** The correct/expected output for this run. When provided, the grader compares actual output against this to score output_quality. */
   expectedOutput?: unknown;
-  /** Optional metadata for filtering and grouping (e.g. goldenId, proofRunId). */
+  /** Step-by-step description of what a correct agent execution looks like. Informs all five grading axes. */
+  expectedBehavior?: string;
+  /** Explicit checklist evaluated one-for-one in criteria_results. Overrides the grader inferring criteria from goal prose. */
+  successCriteria?: string[];
+  /** Deterministic trace assertions evaluated before LLM grading: must_call:<name>, must_not_call:<name>, max_steps:<n>, min_steps:<n>. */
+  traceAssertions?: string[];
+  /** Known failure modes to penalise if observed in the trace. */
+  failureModes?: string[];
+  /** Optional metadata for filtering and grouping. */
   metadata?: Record<string, unknown>;
 }
 
