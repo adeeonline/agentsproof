@@ -8,7 +8,7 @@ export class AgentsProof {
 
   constructor(options: { apiKey: string; baseUrl?: string }) {
     this.apiKey = options.apiKey;
-    this.baseUrl = options.baseUrl ?? 'https://agentsproof.dev/api';
+    this.baseUrl = options.baseUrl ?? 'https://www.agentsproof.dev/api';
   }
 
   startRun(options: RunOptions): AgentRun {
